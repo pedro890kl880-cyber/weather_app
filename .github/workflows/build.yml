@@ -1,1 +1,50 @@
+name: Build Weather App
 
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    name: Build Flutter App (Android & iOS)
+    runs-on: macos-latest
+
+    steps:
+      - name: 📦 Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configurar o ambiente Java (para Android)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: 🐦 Configurar o Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.x'
+          channel: 'stable'
+          cache: true
+
+      - name: 📥 Obter Dependências do Flutter
+        run: flutter pub get
+
+      - name: 🤖 Compilar APK para Android
+        run: flutter build apk --release
+
+      - name: 🍏 Compilar iOS (Build básico sem assinatura obrigatória)
+        run: flutter build ios --release --no-codesign
+
+      - name: 💾 Guardar o APK como Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: 💾 Guardar os ficheiros iOS compilados
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: build/ios/iphoneos/
